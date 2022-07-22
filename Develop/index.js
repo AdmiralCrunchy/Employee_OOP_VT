@@ -4,8 +4,9 @@ const Employee = require("./lib/Employee")
 const Engineer = require("./lib/Engineer")
 const Manager = require("./lib/Manager")
 const Intern = require("./lib/Intern")
-const Template = require("./util/generateHtml")
-let team = []
+const generateHTML = require("./util/generateHtml")
+
+let newTeam = []
 
 function askQuestion() {
     inquirer.prompt([
@@ -29,10 +30,31 @@ function askQuestion() {
 }
 
 function runTeam(){
+    newTeam = []
     makeManager()
-    makeEngineer()
-    nextMember()
-    makeTeampage()
+}
+
+function makeTeampage()
+{    
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "What is the Name of the team?",
+            name:"teamName"
+        }
+    ]).then(answer =>{
+       
+        const finalPage = generateHTML(newTeam)
+        FS.writeFile(`./${answer.teamName}.html`, finalPage ,(err, data)=>{
+            if(err){
+                throw err
+
+            
+            }
+            console.log('working!')
+        })
+        askQuestion()
+    })
 }
 
 function makeManager()
@@ -60,34 +82,39 @@ function makeManager()
     ]).then(answers=>{
 
         const manager = new Manager(answers.managerName, answers.managerID, answers.managerEmail, answers.officeNum)
-        team.push(manager)
+        newTeam.push(manager)
+        nextMember()
     })
+
 }
 
 function makeEngineer(){
     inquirer.prompt([{
         name: "engineerName",
         type: "input",
-        message: "Alright lets get started. First things first What is the manager's name?"
+        message: "Alright lets get started. First things first What is the engineer's name?"
     },
     {
         name: "engineerID",
         type: "input",
-        message: "Ok then; can you input the manager's ID number?"
+        message: "Ok then; can you input the engineer's ID number?"
     },
     {
         name: "engineerEmail",
         type: "input",
-        message: "Next; what is the manager's email address?"
+        message: "Next; what is the engineer's email address?"
     },
     {
-        name: "engineerGithub"
+        name: "engineerGithub",
+        type: "input",
+        message: "Finally what is the engineer's Github user name?"
     }
     ]).then(answers=>{
-
         const engineer = new Engineer(answers.engineerName, answers.engineerID, answers.engineerEmail, answers.engineerGithub)
-        team.push(engineer)
+        newTeam.push(engineer)
+        nextMember()
     })
+
 }
 
 function makeIntern()
@@ -95,46 +122,30 @@ function makeIntern()
     inquirer.prompt([{
         name: "internName",
         type: "input",
-        message: "Alright lets get started. First things first What is the manager's name?"
+        message: "Alright lets get started. First things first What is the intern's name?"
     },
     {
         name: "internID",
         type: "input",
-        message: "Ok then; can you input the manager's ID number?"
+        message: "Ok then; can you input the intern's ID number?"
     },
     {
         name: "internEmail",
         type: "input",
-        message: "Next; what is the manager's email address?"
+        message: "Next; what is the interns's email address?"
     },
     {
-        name: "internSchool"
+        name: "internSchool",
+        type: "input",
+        message: "What school is the intern going to?"
     }
-    ]).then(answers=>{
+    ]).then (answers=>{
 
         const intern = new Intern(answers.internName, answers.internID, answers.internEmail, answers.internSchool)
-        team.push(intern)
+        newTeam.push(intern)
+        nextMember()
     })
-}
 
-function makeTeampage()
-{
-    for (let i = 0; i < team.length; i++) {
-        
-    }
-    inquirer.prompt([
-        {
-            name:"name",
-            type:"input",
-            message: "What would you like the team name to be?",
-        }
-    ]).then(answer =>{
-        FS.writeFile(`${answer.name}`, stringHTML,(err, data)=>{
-            if(err){
-                throw err
-            }
-        })
-    } )
 
 }
 
@@ -162,17 +173,21 @@ function nextMember()
                 {
                     case "Engineer":
                         makeEngineer()
-                        nextMember()
                         break;
                     case "Intern":
                         makeIntern()
-                        nextMember()
+                        break;
+                    case "Nevermind":
+                        makeTeampage()
                         break;
                     default:
-                        console.log("Alright lets make the team page!")
+
                         break;
                 }
             })
+        }
+        else{
+            makeTeampage()
         }
     })
 }
